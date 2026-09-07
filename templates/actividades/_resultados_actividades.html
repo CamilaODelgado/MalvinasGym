@@ -1,0 +1,67 @@
+<div class="table-wrapper" id="actividadesResults">
+    <table class="gestion-table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for actividad in actividades %}
+                <tr>
+                    <td>{{ actividad.nombre }}</td>
+                    <td>{{ actividad.descripcion|default:"-" }}</td>
+                    <td>
+                        <span class="status-badge status-active">
+                            {{ actividad.estado_actividad.nombre }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            {% if perms.actividades.view_actividad %}
+                                <a href="{% url 'actividades:actividad_detalle' actividad.pk %}" class="action-btn" title="Ver">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                            {% endif %}
+                            {% if perms.actividades.change_actividad %}
+                                <a href="{% url 'actividades:actividad_editar' actividad.pk %}" class="action-btn" title="Editar">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                            {% endif %}
+                            {% if perms.actividades.delete_actividad %}
+                                <a href="{% url 'actividades:actividad_eliminar' actividad.pk %}" class="action-btn" title="Eliminar">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4">Todavía no hay actividades que coincidan con el filtro.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if actividades.paginator.num_pages > 1 %}
+        <div class="pagination">
+            {% if actividades.has_previous %}
+                <a href="?page={{ actividades.previous_page_number }}{% if buscar %}&buscar={{ buscar }}{% endif %}{% if estado_id %}&estado={{ estado_id }}{% endif %}">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </a>
+            {% endif %}
+
+            <span>Página {{ actividades.number }} de {{ actividades.paginator.num_pages }}</span>
+
+            {% if actividades.has_next %}
+                <a href="?page={{ actividades.next_page_number }}{% if buscar %}&buscar={{ buscar }}{% endif %}{% if estado_id %}&estado={{ estado_id }}{% endif %}">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>

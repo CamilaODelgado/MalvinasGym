@@ -1,0 +1,180 @@
+{% extends "base_gestion.html" %}
+
+{% block title %}Actividades | Malvinas GYM{% endblock %}
+{% block breadcrumb %}Actividades{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div class="page-title">
+        <h1>Actividades</h1>
+        <p>{{ total_actividades }} actividades registradas</p>
+    </div>
+
+    {% if perms.actividades.add_actividad %}
+        <a href="{% url 'actividades:actividad_crear' %}" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i>
+            Nueva actividad
+        </a>
+    {% endif %}
+</div>
+
+<div class="gestion-card">
+
+    <div class="list-toolbar">
+        <form method="GET" action="{% url 'actividades:actividad_lista' %}" class="search-form" id="actividadesSearchForm">
+            <div class="search-input-wrapper">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" name="buscar" id="buscarActividad" value="{{ buscar }}" placeholder="Nombre de la actividad..." autocomplete="off">
+            </div>
+
+            <label class="state-filter" for="estadoActividad">
+                <select name="estado" id="estadoActividad">
+                    <option value="">Todas</option>
+                    {% for est in estados_filtro %}
+                        <option value="{{ est.pk }}" {% if estado_id == est.pk|stringformat:'s' %}selected{% endif %}>
+                            {{ est.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <button type="submit" class="btn btn-outline btn-sm">Buscar</button>
+
+            <button
+                type="button"
+                id="limpiarFiltrosActividades"
+                class="btn btn-sm btn-clear-filters{% if buscar or estado_id %} is-visible{% endif %}"
+            >
+                <i class="fa-solid fa-xmark"></i>
+                Limpiar filtros
+            </button>
+        </form>
+    </div>
+
+    {% include "actividades/_resultados_actividades.html" %}
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const formulario = document.getElementById("actividadesSearchForm");
+    const inputBusqueda = document.getElementById("buscarActividad");
+    const filtroEstado = document.getElementById("estadoActividad");
+    const botonLimpiar = document.getElementById("limpiarFiltrosActividades");
+    const resultados = document.getElementById("actividadesResults");
+
+    if (!formulario || !inputBusqueda || !filtroEstado || !botonLimpiar || !resultados) {
+        return;
+    }
+
+    let temporizador;
+    let solicitudActiva;
+
+    async function actualizarResultados(url) {
+        if (solicitudActiva) {
+            solicitudActiva.abort();
+        }
+
+        const solicitud = new AbortController();
+        solicitudActiva = solicitud;
+
+        try {
+            const respuesta = await fetch(url, {
+                headers: { "X-Requested-With": "XMLHttpRequest" },
+                signal: solicitud.signal,
+            });
+
+            if (!respuesta.ok) {
+                throw new Error("No se pudo actualizar la lista de actividades.");
+            }
+
+            const documento = new DOMParser().parseFromString(await respuesta.text(), "text/html");
+            const nuevosResultados = documento.getElementById("actividadesResults");
+
+            if (!nuevosResultados) {
+                throw new Error("La respuesta de búsqueda no es válida.");
+            }
+
+            if (solicitud.signal.aborted || solicitudActiva !== solicitud) {
+                return;
+            }
+
+            resultados.innerHTML = nuevosResultados.innerHTML;
+            window.history.replaceState({}, "", url);
+        } catch (error) {
+            if (error.name !== "AbortError" && !solicitud.signal.aborted) {
+                console.error(error);
+            }
+        }
+    }
+
+    function actualizarBotonLimpiar() {
+        const hayFiltros = Boolean(inputBusqueda.value.trim()) || Boolean(filtroEstado.value);
+        botonLimpiar.classList.toggle("is-visible", hayFiltros);
+    }
+
+    function buscarActividades() {
+        const parametros = new URLSearchParams();
+        const termino = inputBusqueda.value.trim();
+
+        if (termino) parametros.set("buscar", termino);
+        if (filtroEstado.value) parametros.set("estado", filtroEstado.value);
+
+        actualizarBotonLimpiar();
+
+        const query = parametros.toString();
+        const url = formulario.action + (query ? "?" + query : "");
+
+        actualizarResultados(url);
+    }
+
+    inputBusqueda.addEventListener("input", function () {
+        clearTimeout(temporizador);
+        if (solicitudActiva) solicitudActiva.abort();
+        actualizarBotonLimpiar();
+        temporizador = setTimeout(buscarActividades, 350);
+    });
+
+    inputBusqueda.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" && !event.isComposing) {
+            event.preventDefault();
+            clearTimeout(temporizador);
+            buscarActividades();
+        }
+    });
+
+    filtroEstado.addEventListener("change", function () {
+        clearTimeout(temporizador);
+        buscarActividades();
+    });
+
+    formulario.addEventListener("submit", function (event) {
+        event.preventDefault();
+        clearTimeout(temporizador);
+        buscarActividades();
+    });
+
+    botonLimpiar.addEventListener("click", function () {
+        clearTimeout(temporizador);
+        inputBusqueda.value = "";
+        filtroEstado.value = "";
+        actualizarBotonLimpiar();
+        actualizarResultados(formulario.action);
+    });
+
+    resultados.addEventListener("click", function (event) {
+        const enlace = event.target.closest(".pagination a");
+        if (!enlace || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+            return;
+        }
+        event.preventDefault();
+        clearTimeout(temporizador);
+        actualizarResultados(enlace.href);
+    });
+
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base_gestion.html" %}
+
+{% block title %}Tomar asistencia | Malvinas GYM{% endblock %}
+{% block breadcrumb %}Asistencias{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div class="page-title">
+        <h1>Tomar asistencia</h1>
+        <p>{{ horario.actividad }} — {{ horario.dia }}, {{ horario.hora_inicio|time:"H:i" }} a {{ horario.hora_fin|time:"H:i" }} — Prof. {{ horario.profesor }}</p>
+    </div>
+
+    <a href="{% url 'actividades:horario_lista' %}" class="btn btn-outline">
+        <i class="fa-solid fa-arrow-left"></i>
+        Volver
+    </a>
+</div>
+
+<div class="gestion-card">
+
+    <form method="post" class="asistencia-form">
+        {% csrf_token %}
+
+        <div class="form-field asistencia-fecha">
+            <label for="id_fecha">Fecha de la clase</label>
+            <input type="date" id="id_fecha" name="fecha" value="{{ fecha|date:'Y-m-d' }}"
+                   onchange="window.location.search = '?fecha=' + this.value">
+        </div>
+
+        {% if filas %}
+            <table class="gestion-table asistencia-table">
+                <thead>
+                    <tr>
+                        <th>Socio</th>
+                        <th>DNI</th>
+                        <th>Asistencia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fila in filas %}
+                        <tr>
+                            <td>{{ fila.socio }}</td>
+                            <td>{{ fila.socio.dni }}</td>
+                            <td>
+                                <div class="toggle-asistencia">
+                                    <input type="radio"
+                                           id="presente_{{ fila.socio.pk }}"
+                                           name="estado_{{ fila.socio.pk }}"
+                                           value="presente"
+                                           {% if fila.presente %}checked{% endif %}>
+                                    <label for="presente_{{ fila.socio.pk }}" class="toggle-btn toggle-presente">
+                                        <i class="fa-solid fa-check"></i>
+                                        Presente
+                                    </label>
+
+                                    <input type="radio"
+                                           id="ausente_{{ fila.socio.pk }}"
+                                           name="estado_{{ fila.socio.pk }}"
+                                           value="ausente"
+                                           {% if not fila.presente %}checked{% endif %}>
+                                    <label for="ausente_{{ fila.socio.pk }}" class="toggle-btn toggle-ausente">
+                                        <i class="fa-solid fa-xmark"></i>
+                                        Ausente
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    Guardar asistencia
+                </button>
+            </div>
+        {% else %}
+            <p>
+                Todavía no hay socios inscriptos en este horario. Registrá
+                inscripciones antes de tomar asistencia.
+            </p>
+        {% endif %}
+
+    </form>
+
+</div>
+
+{% endblock %}

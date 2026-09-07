@@ -1,0 +1,68 @@
+{% extends "base_gestion.html" %}
+
+{% block title %}{{ actividad.nombre }} | Malvinas GYM{% endblock %}
+{% block breadcrumb %}Actividades{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div class="page-title">
+        <h1>{{ actividad.nombre }}</h1>
+        <span class="status-badge status-active">{{ actividad.estado_actividad.nombre }}</span>
+    </div>
+
+    <div class="table-actions">
+        <a href="{% url 'actividades:actividad_lista' %}" class="btn btn-outline">
+            <i class="fa-solid fa-arrow-left"></i>
+            Volver
+        </a>
+
+        {% if perms.actividades.change_actividad %}
+            <a href="{% url 'actividades:actividad_editar' actividad.pk %}" class="btn btn-primary">
+                <i class="fa-solid fa-pen"></i>
+                Editar
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="gestion-card">
+
+    <dl class="detail-grid">
+        <dt>Descripción</dt>
+        <dd>{{ actividad.descripcion|default:"-" }}</dd>
+
+        <dt>Creada el</dt>
+        <dd>{{ actividad.fecha_creacion|date:"d/m/Y H:i" }}</dd>
+    </dl>
+
+    <h2>Horarios de esta actividad</h2>
+
+    {% if horarios %}
+        <table class="gestion-table">
+            <thead>
+                <tr>
+                    <th>Día</th>
+                    <th>Horario</th>
+                    <th>Profesor</th>
+                    <th>Cupo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for horario in horarios %}
+                    <tr>
+                        <td>{{ horario.dia }}</td>
+                        <td>{{ horario.hora_inicio|time:"H:i" }} a {{ horario.hora_fin|time:"H:i" }}</td>
+                        <td>{{ horario.profesor }}</td>
+                        <td>{{ horario.cupo }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Esta actividad todavía no tiene horarios asignados.</p>
+    {% endif %}
+
+</div>
+
+{% endblock %}

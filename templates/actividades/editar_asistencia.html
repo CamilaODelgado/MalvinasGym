@@ -1,0 +1,67 @@
+{% extends "base_gestion.html" %}
+
+{% block title %}Editar asistencia | Malvinas GYM{% endblock %}
+{% block breadcrumb %}Asistencias{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div class="page-title">
+        <h1>Editar asistencia</h1>
+    </div>
+
+    <a href="{% url 'actividades:asistencia_lista' %}" class="btn btn-outline">
+        <i class="fa-solid fa-arrow-left"></i>
+        Volver
+    </a>
+</div>
+
+<div class="gestion-card">
+
+    <dl class="detail-grid">
+        <dt>Socio</dt>
+        <dd>{{ asistencia.socio }}</dd>
+
+        <dt>Horario</dt>
+        <dd>{{ asistencia.horario }}</dd>
+
+        <dt>Profesor</dt>
+        <dd>{{ asistencia.profesor }}</dd>
+    </dl>
+
+    <p class="form-help">
+        El socio, el horario y el profesor de un registro de asistencia no
+        se pueden cambiar acá — surgen de la inscripción real. Si el
+        registro corresponde a otro socio u horario, eliminalo y volvé a
+        tomar la asistencia desde el horario correcto.
+    </p>
+
+    <form method="post" class="socio-form">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="form-error">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        {% for field in form %}
+            <div class="form-field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <small class="form-error">{{ field.errors|striptags }}</small>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i>
+                Guardar
+            </button>
+            <a href="{% url 'actividades:asistencia_lista' %}" class="btn btn-outline">Cancelar</a>
+        </div>
+    </form>
+
+</div>
+
+{% endblock %}

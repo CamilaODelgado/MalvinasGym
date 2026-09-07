@@ -1,0 +1,56 @@
+{% extends "base_gestion.html" %}
+
+{% block title %}Asistencia | Malvinas GYM{% endblock %}
+{% block breadcrumb %}Asistencias{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div class="page-title">
+        <h1>{{ asistencia.socio }}</h1>
+        <p>{{ asistencia.horario.actividad }} — {{ asistencia.fecha|date:"d/m/Y" }}</p>
+    </div>
+
+    <div class="table-actions">
+        <a href="{% url 'actividades:asistencia_lista' %}" class="btn btn-outline">
+            <i class="fa-solid fa-arrow-left"></i>
+            Volver
+        </a>
+
+        {% if perms.actividades.change_asistencia %}
+            <a href="{% url 'actividades:asistencia_editar' asistencia.pk %}" class="btn btn-primary">
+                <i class="fa-solid fa-pen"></i>
+                Editar
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="gestion-card">
+
+    <dl class="detail-grid">
+        <dt>Estado</dt>
+        <dd>
+            {% if asistencia.presente %}
+                <span class="status-badge status-active">Presente</span>
+            {% else %}
+                <span class="status-badge status-warning">Ausente</span>
+            {% endif %}
+        </dd>
+
+        <dt>Horario</dt>
+        <dd>{{ asistencia.horario }}</dd>
+
+        <dt>Profesor</dt>
+        <dd>{{ asistencia.profesor }}</dd>
+
+        <dt>Fecha</dt>
+        <dd>{{ asistencia.fecha|date:"d/m/Y" }}</dd>
+
+        <dt>Hora</dt>
+        <dd>{{ asistencia.hora|time:"H:i" }}</dd>
+    </dl>
+
+</div>
+
+{% endblock %}
