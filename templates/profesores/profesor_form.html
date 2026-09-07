@@ -1,13 +1,9 @@
 {% extends 'base_gestion.html' %}
-{% load static %}
 
 {% block title %}
 {% if object %}Editar Profesor{% else %}Nuevo Profesor{% endif %} | Malvinas GYM
 {% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'core/css/profesores.css' %}">
-{% endblock %}
+{% block breadcrumb %}Profesores{% endblock %}
 
 {% block content %}
 

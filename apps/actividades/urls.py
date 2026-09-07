@@ -1,6 +1,16 @@
 from django.urls import path
 
-from . import views
+from . import views 
+
+from .views import (
+    ProfesorListView,
+    ProfesorCreateView,
+    ProfesorUpdateView,
+    ProfesorDeleteView,
+    ProfesorDetailView,
+    cambiar_estado_profesor
+)
+
 
 app_name = "actividades"
 
@@ -31,5 +41,20 @@ urlpatterns = [
     path("asistencias/<int:pk>/", views.detalle_asistencia, name="asistencia_detalle"),
     path("asistencias/<int:pk>/editar/", views.editar_asistencia, name="asistencia_editar"),
     path("asistencias/<int:pk>/eliminar/", views.eliminar_asistencia, name="asistencia_eliminar"),
+    
+    # Profesores
+    # NOTA: antes esta ruta era path('', ...) — literalmente la misma
+    # regex vacía que "actividad_lista" más arriba. Django resuelve por
+    # orden de aparición, así que /actividades/ siempre caía en
+    # lista_actividades y esta vista quedaba inalcanzable por URL (aunque
+    # el name="profesor_list" existía y {% url %} lo resolvía "bien",
+    # apuntando sin querer a esa misma URL compartida). Se le da su propio
+    # prefijo, en línea con el resto de las rutas de profesores de abajo.
+    path('profesores/', ProfesorListView.as_view(), name='profesor_list'),
+    path('profesores/crear/', ProfesorCreateView.as_view(), name='profesor_create'),
+    path('profesores/<int:pk>/editar/', ProfesorUpdateView.as_view(), name='profesor_update'),
+    path('profesores/<int:pk>/eliminar/', ProfesorDeleteView.as_view(), name='profesor_delete'),
+    path('profesores/<int:pk>/detalle/', ProfesorDetailView.as_view(), name='profesor_detalle'),
+    path('profesores/<int:pk>/cambiar-estado/', cambiar_estado_profesor, name='profesor_cambiar_estado'),
     
 ]

@@ -7,6 +7,7 @@ from .models import (
     EstadoActividad,
     Horario,
     Inscripcion,
+    Profesor
 )
 
 
@@ -92,7 +93,7 @@ class AsistenciaForm(forms.ModelForm):
             "hora": forms.TimeInput(attrs={"type": "time"}),
         }
 
-from .models import Profesor
+
 
 class ProfesorForm(forms.ModelForm):
     class Meta:

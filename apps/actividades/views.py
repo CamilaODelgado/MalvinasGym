@@ -1,14 +1,15 @@
 import datetime
-
+from django.urls import reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.paginator import Paginator
 from django.db.models import ProtectedError, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .forms import ActividadForm, AsistenciaForm, HorarioForm, InscripcionForm
+from .forms import ActividadForm, AsistenciaForm, HorarioForm, InscripcionForm, ProfesorForm
 from .models import (
     NOMBRES_ESTADOS_PREDEFINIDOS,
     Actividad,
@@ -16,6 +17,7 @@ from .models import (
     EstadoActividad,
     Horario,
     Inscripcion,
+    Profesor, EstadoProfesor
 )
 
 
@@ -497,19 +499,13 @@ def eliminar_asistencia(request, pk):
         "actividades/confirmar_eliminar_generico.html",
         {"objeto": asistencia, "cancelar_url": "actividades:asistencia_lista"},
     )
-from django.urls import reverse_lazy
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
-from .models import Profesor, EstadoProfesor
-from .forms import ProfesorForm
-from django.db.models import Q
 
-# NOTA DE SEGURIDAD: estas vistas de Profesor no tenían NINGÚN control de
-# autenticación ni de permisos (a diferencia de todo el resto del módulo,
-# que usa @login_required + @permission_required en cada vista). Se
-# agregan los mixins correspondientes para dejarlas consistentes con el
-# resto de la app. Actualmente no están enrutadas en urls.py (código sin
-# usar todavía); igual se protegen para que, el día que se las enrute,
-# no queden expuestas por descuido.
+# NOTA DE SEGURIDAD: estas vistas no tenían NINGÚN control de autenticación
+# ni de permisos, pese a estar enrutadas en /profesores/. Cualquier persona,
+# sin necesidad de iniciar sesión, podía listar, crear, editar y eliminar
+# profesores con solo conocer la URL. Se agregan los mixins/decoradores
+# correspondientes, siguiendo el mismo patrón usado en el resto del
+# proyecto (ver apps/socios/views.py).
 
 # 1. LISTAR PROFESORES
 class ProfesorListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
@@ -600,12 +596,10 @@ class ProfesorDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView
     context_object_name = 'profesor'
 
 # 6. CAMBIAR ESTADO PROFESOR (ACCIÓN RÁPIDA DE ALTA/BAJA)
-# Antes era un GET sin login ni permisos: cualquiera (ni siquiera hacía
-# falta estar autenticado) podía activar/desactivar profesores con solo
-# visitar la URL, y al ser GET quedaba además expuesto a CSRF/prefetch
-# (un navegador, proxy o bot que precargue el link ya dispara el cambio).
-# Se exige POST + login + permiso, igual que el resto de las acciones que
-# modifican estado en el proyecto (ver dar_baja_socio, suspender_socio, etc.)
+# Antes era un GET sin login ni permisos: cualquiera podía activar/
+# desactivar profesores con solo visitar la URL, y al ser GET quedaba
+# expuesto a CSRF y a que un navegador/proxy la precargue por accidente.
+# Se exige POST + login + permiso.
 @login_required
 @permission_required("actividades.change_profesor", raise_exception=True)
 @require_POST
